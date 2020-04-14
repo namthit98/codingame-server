@@ -1,4 +1,6 @@
-const app = require('./app')
+const app = require("./app");
+const { CORE } = require("./constants");
 
-const PORT = process.env.PORT || 7000
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
+app.listen(CORE.PORT, () =>
+  console.log(`Server is running on port ${CORE.PORT}`)
+);
