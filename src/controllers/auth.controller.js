@@ -23,7 +23,7 @@ const login = async (req, res, next) => {
   });
 
   if (!user)
-    return res.jsonp({
+    return res.status(400).jsonp({
       success: false,
       message: "User is not found",
     });
@@ -36,6 +36,13 @@ const login = async (req, res, next) => {
       message: "Password is not matched",
     });
   }
+  
+  if(!user.isActived) {
+    return res.status(400).jsonp({
+      success: false,
+      message: "User is locked",
+    });
+  }
 
   const JWT = await jwt.sign(
     {
@@ -43,7 +50,7 @@ const login = async (req, res, next) => {
       email: user.email,
     },
     CORE.SECRET_KEY,
-    { expiresIn: "8h" }
+    { expiresIn: "24h" }
   );
 
   res.jsonp({
@@ -53,6 +60,7 @@ const login = async (req, res, next) => {
       lastname: user.lastname,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
       token: JWT,
     },
   });

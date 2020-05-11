@@ -1,4 +1,5 @@
 const UserModel = require("../models/User");
+const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const aws = require("aws-sdk");
 const { makeid, uploadFileToS3 } = require("../libs/helper");
@@ -45,7 +46,10 @@ const createUser = async (req, res, next) => {
     10
   );
 
-  const newUser = new UserModel(body);
+  const newUser = new UserModel({
+    ...body,
+    avatar: req.avatarUrl,
+  });
   newUser.password = hashedPassword;
 
   await newUser.save();
@@ -53,6 +57,7 @@ const createUser = async (req, res, next) => {
   res.jsonp({
     success: true,
     data: newUser,
+    message: "Create User Successfully !!",
   });
 };
 
@@ -66,6 +71,10 @@ const listUsers = async (req, res, next) => {
 };
 
 const uploadAvatar = async (req, res, next) => {
+  if (!req.file) {
+    req.avatarUrl = null;
+    return next();
+  }
   const extFile = req.file.originalname.split(".").pop();
   const filename = [makeid(20), extFile].join(".");
 
@@ -77,13 +86,9 @@ const uploadAvatar = async (req, res, next) => {
     Body: req.file.buffer,
   });
 
-  res.status(200).json({
-    success: true,
-    results: {
-      imageUrl: avatar,
-    },
-    message: "Upload file successfully!",
-  });
+  req.avatarUrl = avatar;
+
+  next();
 };
 
 const updateStatus = async (req, res, next) => {
@@ -98,10 +103,62 @@ const updateStatus = async (req, res, next) => {
   res.status(200).json({
     success: true,
     results: {
-      isActived: user.isActived
+      isActived: user.isActived,
     },
     message: "Change status successfully!",
   });
+};
+
+const changePassword = async (req, res, next) => {
+  const { _id } = req.user;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword)
+    return res.status(400).jsonp({
+      success: false,
+      message: "Data is missed!",
+    });
+
+  const user = await UserModel.findOne({ _id });
+
+  const isPassed = await bcrypt.compare(oldPassword, user.password);
+
+  if (!isPassed) {
+    return res.status(400).jsonp({
+      success: false,
+      message: "Old password is not matched!",
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    newPassword || CORE.PASSWORD_DEFAUL,
+    10
+  );
+  user.password = hashedPassword;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    results: _.pick(user, ["firstname", "lastname", "role"]),
+    message: "Change password successfully!",
+  });
+};
+
+const getOwn = async (req, res, next) => {
+  const { _id } = req.user;
+
+  const user = await UserModel.findOne({ _id });
+
+  res.status(200).json({
+    success: true,
+    results: user,
+    message: "Get user infomation successfully!",
+  });
+};
+
+const forgetPassword = async (req, res, next) => {
+  const email = req.body.email;
 };
 
 module.exports = {
@@ -109,4 +166,7 @@ module.exports = {
   listUsers,
   uploadAvatar,
   updateStatus,
+  changePassword,
+  getOwn,
+  forgetPassword,
 };
