@@ -22,9 +22,7 @@ const upload = multer({ storage: storage });
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(CORE.MONGO_URI, {
-  useNewUrlParser: true,
-});
+console.log("CORE.MONGO_URI", CORE.MONGO_URI)
 
 const s3 = new aws.S3({
   accessKeyId: CORE.S3_ACCESS_KEY,
@@ -120,6 +118,7 @@ app.post("/coding/run", async (req, res, next) => {
 });
 
 app.get("/users", userController.listUsers);
+app.patch("/users/reset-password", userController.resetPassword);
 app.post(
   "/users",
   upload.single("avatar"),

@@ -8,5 +8,7 @@ module.exports = {
         MONGO_URI: process.env.MONGO_URI || "",
         PASSWORD_DEFAUL: process.env.PASSWORD_DEFAUL || '123456',
         SECRET_KEY: process.env.SECRET_KEY || 'NamHandsomee',
+        SECRET_KEY_MAIL: process.env.SECRET_KEY_MAIL || 'NAMPRO',
+        WEBSITE_URL: process.env.WEBSITE_URL || 'http://localhost:3000'
     }
 }

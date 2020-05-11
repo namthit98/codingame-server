@@ -1,9 +1,11 @@
 const UserModel = require("../models/User");
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const aws = require("aws-sdk");
 const { makeid, uploadFileToS3 } = require("../libs/helper");
 const { CORE } = require("../constants");
+const { sendEmail } = require("@fbeta/helper");
 
 const s3 = new aws.S3({
   accessKeyId: CORE.S3_ACCESS_KEY,
@@ -62,7 +64,7 @@ const createUser = async (req, res, next) => {
 };
 
 const listUsers = async (req, res, next) => {
-  const users = await UserModel.find({});
+  const users = await UserModel.find({}).sort("-createdAt");
 
   res.jsonp({
     success: true,
@@ -159,6 +161,77 @@ const getOwn = async (req, res, next) => {
 
 const forgetPassword = async (req, res, next) => {
   const email = req.body.email;
+
+  const user = await UserModel.findOne({ email });
+
+  const JWT = await jwt.sign(
+    {
+      _id: user._id,
+      email,
+    },
+    CORE.SECRET_KEY_MAIL,
+    { expiresIn: "24h" }
+  );
+
+  const sendMailData = {
+    template: "forgot-password.html", // Email template name is required
+    subject: "Congratulation", // Email subject is required
+    email: email, // Email address of the recipient is required
+    data: {
+      url: CORE.WEBSITE_URL + "/password/reset/" + JWT,
+    }, // Email content may be empty
+  };
+
+  try {
+    const a = await sendEmail(sendMailData, {
+      api_key: process.env.KEY_SEND_EMAIL,
+      domain: process.env.DOMAIN,
+    });
+
+    console.log(a);
+    res.status(200).json({
+      success: true,
+      results: null,
+      message: "Send mail successfully !!!",
+    });
+    // => Return promise
+  } catch (err) {
+    console.log("err", err);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  const { password, token } = req.body;
+
+  if (!password)
+    return res.status(400).jsonp({
+      success: false,
+      message: "Data is missed!",
+    });
+
+  const decoded = jwt.verify(token, CORE.SECRET_KEY_MAIL);
+
+  console.log(decoded);
+
+  const user = await UserModel.findOne({ _id: decoded._id });
+
+  console.log(user, 11111)
+
+  const hashedPassword = await bcrypt.hash(
+    password || CORE.PASSWORD_DEFAUL,
+    10
+  );
+  user.password = hashedPassword;
+
+  console.log(user, 222222222)
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    results: _.pick(user, ["firstname", "lastname", "role"]),
+    message: "Reset password successfully!",
+  });
 };
 
 module.exports = {
@@ -169,4 +242,5 @@ module.exports = {
   changePassword,
   getOwn,
   forgetPassword,
+  resetPassword,
 };

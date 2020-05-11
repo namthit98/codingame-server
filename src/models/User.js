@@ -27,31 +27,31 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     gender: {
-        type: Number,
-        enum: [0,1]
+      type: Number,
+      enum: [0, 1],
     },
     birthday: {
-        type: Date
+      type: Date,
     },
     isActived: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     isVeryfied: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     avatar: {
-        type: String,
-        default: ''
+      type: String,
+      default: "",
     },
     role: {
-        type: String,
-        enum: ['admin', 'manager', 'collaborator', 'user']
+      type: String,
+      enum: ["admin", "manager", "collaborator", "user"],
     },
     createdBy: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User'
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true }
