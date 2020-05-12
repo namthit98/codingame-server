@@ -36,7 +36,7 @@ app.use(express.json());
 
 app.use(cors());
 
-console.log("CORE.MONGO_URI", CORE.MONGO_URI);
+// console.log("CORE.MONGO_URI", CORE.MONGO_URI);
 
 const s3 = new aws.S3({
   accessKeyId: CORE.S3_ACCESS_KEY,
