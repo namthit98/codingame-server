@@ -76,6 +76,8 @@ app.post("/code/excute", async (req, res, next) => {
     Body: questionObj.testing,
   });
 
+  console.log("javascriptRunnerURL javascriptRunnerURL", javascriptRunnerURL);
+
   try {
     const { data } = await axios.post(
       `${javascriptRunnerURL}/javascript-code/excute`,
@@ -86,7 +88,7 @@ app.post("/code/excute", async (req, res, next) => {
       }
     );
 
-    console.log("data", data);
+    console.log("data data", data);
 
     res.jsonp({
       success: true,
@@ -95,7 +97,6 @@ app.post("/code/excute", async (req, res, next) => {
       },
       message: `/code/excute`,
     });
-
   } catch (err) {
     // console.log("err", err);
     res.status(400).jsonp({
@@ -125,22 +126,30 @@ app.post("/coding/run", async (req, res, next) => {
     Body: testing,
   });
 
-  const { data } = await axios.post(
-    `${javascriptRunnerURL}/javascript-code/excute`,
-    {
-      sourceName,
-      testCaseName: testCase,
-      language,
-    }
-  );
+  try {
+    const { data } = await axios.post(
+      `${javascriptRunnerURL}/javascript-code/excute`,
+      {
+        sourceName,
+        testCaseName: testCase,
+        language,
+      }
+    );
 
-  res.jsonp({
-    success: true,
-    results: {
-      data: JSON.parse(data.data),
-    },
-    message: `Run code successfully!`,
-  });
+    res.jsonp({
+      success: true,
+      results: {
+        data: JSON.parse(data.data),
+      },
+      message: `Run code successfully!`,
+    });
+  } catch (err) {
+    res.status(400).jsonp({
+      success: false,
+      results: null,
+      message: `Your code is not good! Check it!`,
+    });
+  }
 });
 
 app.get("/users", userController.listUsers);
