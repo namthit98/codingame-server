@@ -19,7 +19,7 @@ const app = express();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-mongoose.connect(CORE.MONGO_URI)
+mongoose.connect(CORE.MONGO_URI);
 
 app.use(express.json());
 // const whitelist = ['https://codingame-cms.now.sh', 'https://codingame-client.now.sh']
@@ -36,7 +36,7 @@ app.use(express.json());
 
 app.use(cors());
 
-console.log("CORE.MONGO_URI", CORE.MONGO_URI)
+console.log("CORE.MONGO_URI", CORE.MONGO_URI);
 
 const s3 = new aws.S3({
   accessKeyId: CORE.S3_ACCESS_KEY,
@@ -76,22 +76,34 @@ app.post("/code/excute", async (req, res, next) => {
     Body: questionObj.testing,
   });
 
-  const { data } = await axios.post(
-    `${javascriptRunnerURL}/javascript-code/excute`,
-    {
-      sourceName,
-      testCaseName: testCase,
-      language: questionObj.language,
-    }
-  );
+  try {
+    const { data } = await axios.post(
+      `${javascriptRunnerURL}/javascript-code/excute`,
+      {
+        sourceName,
+        testCaseName: testCase,
+        language: questionObj.language,
+      }
+    );
 
-  res.jsonp({
-    success: true,
-    results: {
-      data: JSON.parse(data.data),
-    },
-    message: `/code/excute`,
-  });
+    console.log("data", data);
+
+    res.jsonp({
+      success: true,
+      results: {
+        data: JSON.parse(data.data),
+      },
+      message: `/code/excute`,
+    });
+
+  } catch (err) {
+    // console.log("err", err);
+    res.status(400).jsonp({
+      success: false,
+      results: null,
+      message: `Your code is not good! Check it!`,
+    });
+  }
 });
 
 app.post("/coding/upload-exercise", codingController.uploadExercise);
@@ -157,7 +169,7 @@ app.post(
 app.post("/auth/login", authController.login);
 
 app.get("/ping", (req, res, next) => {
-  console.log("bloô")
+  console.log("bloô");
   res.status(200).jsonp({
     success: true,
     results: [],
