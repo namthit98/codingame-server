@@ -19,7 +19,21 @@ const app = express();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+mongoose.connect(CORE.MONGO_URI)
+
 app.use(express.json());
+// const whitelist = ['https://codingame-cms.now.sh', 'https://codingame-client.now.sh']
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     console.log("origin", origin)
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true)
+//     } else {
+//       callback(new Error('Not allowed by CORS'))
+//     }
+//   }
+// }
+
 app.use(cors());
 
 console.log("CORE.MONGO_URI", CORE.MONGO_URI)
@@ -143,6 +157,7 @@ app.post(
 app.post("/auth/login", authController.login);
 
 app.get("/ping", (req, res, next) => {
+  console.log("bloô")
   res.status(200).jsonp({
     success: true,
     results: [],
